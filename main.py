@@ -1,11 +1,10 @@
 from langchain_ollama import ChatOllama
 from langgraph.prebuilt import create_react_agent
+from langgraph_supervisor import create_supervisor
 from langchain_mcp_adapters.client import MultiServerMCPClient
 from dotenv import load_dotenv
 import os
-from langchain_core.messages import AnyMessage
-from langchain_core.runnables import RunnableConfig
-from langgraph.prebuilt.chat_agent_executor import AgentState
+
 
 load_dotenv()
 
@@ -13,7 +12,7 @@ TAVILY_API_KEY = os.getenv("TAVILY_API_KEY")
 OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL")
 
 async def main():
-    llm = ChatOllama(model="llama3.2:3b-instruct-q4_K_M", base_url=OLLAMA_BASE_URL)
+    llm = ChatOllama(model="qwen3:30b-a3b", base_url=OLLAMA_BASE_URL)
 
     async with MultiServerMCPClient(
         {
@@ -24,16 +23,17 @@ async def main():
             }
         }
     ) as client:
-        agent = create_react_agent(llm, tools=client.get_tools(), prompt="You are a internet-powered bot with search tools to find answers.")
+        tavily_agent = create_react_agent(model=llm, tools=client.get_tools(), prompt="You are a internet-powered bot with search tools to find answers.", name="internet_agent")
 
-        response = await agent.ainvoke({
-            "messages": [
-                {"role": "user", "content": "How do I use docker-compose to create containers for python development?"}
-            ]
-        })
-        print(response)
-        for m in response["messages"]:
-            m.pretty_print()
+        supervisor_agent = create_supervisor(model=llm, agents=[tavily_agent], prompt="You manage one agent, an internet-search agent.").compile()
+
+        user_input = input("Enter a message: ")
+
+        state = await supervisor_agent.ainvoke({"messages": [{"role": "user", "content": user_input}]})
+
+        print(state)
+        print(state["messages"][-1].content)
+
 
 if __name__ == "__main__":
     import asyncio

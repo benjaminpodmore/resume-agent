@@ -1,5 +1,7 @@
 langchain
 langchain-ollama
 langgraph
+langgraph-supervisor
 langchain-mcp-adapters
 python-dotenv
+jupyterlab
