@@ -10,10 +10,10 @@ from langgraph.prebuilt.chat_agent_executor import AgentState
 load_dotenv()
 
 TAVILY_API_KEY = os.getenv("TAVILY_API_KEY")
+OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL")
 
 async def main():
-    llm = ChatOllama(model="llama3.2:3b-instruct-q4_K_M", base_url="http://ollama:11434")
-    agent = create_react_agent(llm, tools=[])
+    llm = ChatOllama(model="llama3.2:3b-instruct-q4_K_M", base_url=OLLAMA_BASE_URL)
 
     async with MultiServerMCPClient(
         {
