@@ -1,0 +1,18 @@
+services:
+  app:
+    image: python:3.13.3-bookworm
+    build: .
+    volumes:
+      - .:/app
+    working_dir: /app
+    command: python main.py
+    environment:
+      - PYTHONDONTWRITEBYTECODE=1
+      - PYTHONUNBUFFERED=1
+      - PIP_NO_CACHE_DIR=1
+    networks:
+      - ollama-shared-network
+
+networks:
+  ollama-shared-network:
+    external: true
